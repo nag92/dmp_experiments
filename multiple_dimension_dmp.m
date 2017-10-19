@@ -5,8 +5,8 @@ global dcps;
 dt        = 0.001;      % time step of training trajectory
 start     = [0,0,0];    % DMP start-position [x,y,z]
 goal      = [0,0,0];    % DMP end-position   [z,y,z]
-tau       = 0.5;        % DMP time scaling constant
-n_rfs     = 128;        % # of basis functions to use/DMP
+tau       = 1/2;        % DMP time scaling constant
+n_rfs     = 20;        % # of basis functions to use/DMP
 
 % initialize a DMP for each of the X, Y, and Z dimensions
 Xid = 1; dcp('clear',Xid); dcp('init',Xid,n_rfs,'X-dim_dmp',1);
@@ -36,12 +36,22 @@ traj_plot = plot3([0],[0],[0], 'LineStyle','-');
 axis([-5 5 -5 5 -5 5]);
 history = [];
 
+tic
 for i=0:2*tau/dt
+  % change goal if more than halfway
+%     if(i > tau/dt) %change goal
+%       goal = [1,1,1];
+%       dcp('set_goal',Xid,goal(1),1);
+%       dcp('set_goal',Yid,goal(2),1);
+%       dcp('set_goal',Zid,goal(3),1);
+%     end
+  
+  % next task-space point computations
   X(i+1,:)   = dcp('run',Xid,tau,dt);
   Y(i+1,:)   = dcp('run',Yid,tau,dt);
   Z(i+1,:)   = dcp('run',Zid,tau,dt);
   
-  % iterate simulation
+  % update drawing
   arm_pts = getArmPts(X(i+1,1), Y(i+1,1), Z(i+1,1));
   history(i+1,:) = arm_pts(4,:);
   
@@ -49,30 +59,32 @@ for i=0:2*tau/dt
   set(traj_plot,'XData', history(:,1), 'YData', history(:,2), 'ZData', history(:,3));
   pause(dt);
 end
+toc
   
 % plot 3-space trajectory
-dir_num = 1; % pos = 1, vel = 2, accl = 3
 figure(1); clf; hold on; view(3);
-plot3(X(:,dir_num), Y(:,dir_num), Z(:,dir_num));
-plot3(xT(:,dir_num), yT(:,dir_num), zT(:,dir_num));
+plot3(X(:,1), Y(:,1), Z(:,1));
+plot3(xT(:,1), yT(:,1), zT(:,1));
+title('training (pos) trajectory vs. generated (pos) trajectory');
 
 % compare individual DMP's
 time = (0:dt:tau*2)';
+dir_num = 1; % pos = 1, vel = 2, accl = 3
 figure(2); clf;
 
 subplot(3,1,1);
-plot(time,[X(:,1) xT(:,1)]);
-title('X');
+plot(time,[X(:,dir_num) xT(:,dir_num)]);
+title(sprintf('%d derivative X-trajectory',dir_num-1));
 aa=axis; axis([min(time) max(time) aa(3:4)]);
 
 subplot(3,1,2);
-plot(time,[Y(:,1) yT(:,1)]);
-title('Y');
+plot(time,[Y(:,dir_num) yT(:,dir_num)]);
+title(sprintf('%d derivative Y-trajectory',dir_num-1));
 aa=axis; axis([min(time) max(time) aa(3:4)]);
 
 subplot(3,1,3);
-plot(time,[Z(:,1) zT(:,1)]);
-title('Z');
+plot(time,[Z(:,dir_num) zT(:,dir_num)]);
+title(sprintf('%d derivative Z-trajectory',dir_num-1));
 aa=axis; axis([min(time) max(time) aa(3:4)]);
 
 drawnow;
