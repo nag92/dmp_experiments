@@ -1,0 +1,29 @@
+1) what are the dimensional parameters?
+  |-->Y is the dimension we care to observe
+  |-->X is the canonical system
+  |-->diff(Y) == Z == Yd
+  |-->diff(Yd) == Zd == Ydd
+  |-->diff(X) == Xd == V
+  |-->diff(Xd) == Vd
+
+2) What are all the alpha/beta constants?
+  |-->alpha_z, alpha_x are used for solutions to x (or s)
+    |-->z:  x(t) = 1-(1+alpha/2*t)*exp(-alpha/2*t)
+    |-->x:  x(t) = exp(-alpha*t)
+  |-->alpha_v, beta_v, alpha_x, alpha_g are used to compute hidden states
+      (something to do with the initial training of the model?)
+  |-->beta_z is a constant for w computation
+
+3) The hell is going on with min_jerk_step?
+  |-->Another trajectory generation method.  Used to create DMP training data.
+
+4) What *is* tau, anyway?
+  |-->time constant to scale speed
+
+5) what are the internal parameters
+  |-->Ft, sx2, sxtd, D are intermediate parameters to calculate w's
+
+--------------------------------------------------------------------------------
+
+6) What are the hidden states X, V, G?
+7) What are the variables g, gd?
