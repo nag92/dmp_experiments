@@ -1,12 +1,16 @@
-clc; clear;
+clc; clear; close all;
 global dcps;
+
+% generaler parameters
+outfile = '32.gif';
+saveAnimation = 0;
 
 % general parameters
 dt        = 0.001;      % time step of training trajectory
 start     = [0,0,0];    % DMP start-position [x,y,z]
 goal      = [0,0,0];    % DMP end-position   [z,y,z]
-tau       = 1/2;        % DMP time scaling constant
-n_rfs     = 20;        % # of basis functions to use/DMP
+tau       = 1.0;        % DMP time scaling constant
+n_rfs     = 256;        % # of basis functions to use/DMP
 
 % initialize a DMP for each of the X, Y, and Z dimensions
 Xid = 1; dcp('clear',Xid); dcp('init',Xid,n_rfs,'X-dim_dmp',1);
@@ -30,7 +34,7 @@ dcp('reset_state',Yid,start(2)); dcp('set_goal',Yid,goal(2),1);
 dcp('reset_state',Zid,start(3)); dcp('set_goal',Zid,goal(3),1);
 
 %simulation setup
-figure(3); hold on; view(3); grid on
+h = figure(3); hold on; view(3); grid on
 arm_plot  = plot3([0],[0],[0], 'Marker', 'o', 'LineStyle','-');
 traj_plot = plot3([0],[0],[0], 'LineStyle','-');
 axis([-5 5 -5 5 -5 5]);
@@ -58,6 +62,17 @@ for i=0:2*tau/dt
   set(arm_plot,'XData', arm_pts(:,1), 'YData', arm_pts(:,2), 'ZData', arm_pts(:,3));
   set(traj_plot,'XData', history(:,1), 'YData', history(:,2), 'ZData', history(:,3));
   pause(dt);
+  
+  if saveAnimation == 1
+      frame = getframe(h);
+      im = frame.cdata;
+      [imind,cm] = rgb2ind(im,256); 
+      if i == 0 
+          imwrite(imind,cm,outfile,'gif','DelayTime',dt,'loopcount',inf); 
+      else 
+          imwrite(imind,cm,outfile,'gif','DelayTime',dt,'writemode','append'); 
+      end
+  end
 end
 toc
   
