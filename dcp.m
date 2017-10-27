@@ -129,13 +129,6 @@ function [varargout] = dcp(action,varargin)
 %
 % returns nothing
 % -------------------------------------------------------------------------
-%
-% Initializes the dcp with a minimum jerk trajectory
-% FORMAT dcp('MinJerk',ID)
-% ID              : ID of model
-%
-% returns nothing
-% -------------------------------------------------------------------------
 
 % the global structure to store all dcps
 global dcps;
@@ -273,7 +266,7 @@ switch lower(action),
 % .........................................................................
   case 'run'
     ID               = varargin{1};
-    tau              = 0.5/varargin{2}; % tau is relative to 0.5 seconds nominal movement time
+    tau              = 1/varargin{2};
     dt               = varargin{3};
     
     if nargin > 4,
@@ -354,7 +347,7 @@ switch lower(action),
 % .........................................................................
   case 'run_fit'
     ID               = varargin{1};
-    tau              = 0.5/varargin{2}; % tau is relative to 0.5 seconds nominal movement time
+    tau              = 1/varargin{2};
     dt               = varargin{3};
     t                = varargin{4};
     td               = varargin{5};
@@ -438,7 +431,7 @@ switch lower(action),
   case 'batch_fit'
     
     ID               = varargin{1};
-    tau              = 0.5/varargin{2}; % tau is relative to 0.5 seconds nominal movement time
+    tau              = 1/varargin{2};
     dt               = varargin{3};
     T                = varargin{4};
     if (nargin > 5) 
@@ -517,37 +510,6 @@ switch lower(action),
       dcps(ID).w    = dcps(ID).sxtd./(dcps(ID).sx2+1.e-10);
     end
     
-    % compute the prediction
-    if (dcps(ID).c_order == 1)
-      F     = sum((V*dcps(ID).w').*PSI,2)./sum(PSI,2) * amp;      
-    else
-      F     = sum((X*dcps(ID).w').*PSI,2)./sum(PSI,2) * amp;
-    end
-    z     = 0;
-    zd    = 0;
-    y     = y0;
-    Y     = zeros(size(T));
-    Yd    = zeros(size(T));
-    Ydd   = zeros(size(T));
-    
-    for i=1:length(T),
-      
-      Ydd(i) = zd*tau;
-      Yd(i)  = z;
-      Y(i)   = y;
-      
-      zd   = (dcps(ID).alpha_z*(dcps(ID).beta_z*(G(i)-y)-z)+F(i))*tau;
-      yd   = z;
-      
-      z    = zd*dt+z;
-      y    = yd*dt+y;
-            
-    end
-        
-    varargout(1) = {Y};
-    varargout(2) = {Yd};
-    varargout(3) = {Ydd};
-    
 % .........................................................................
   case 'structure'
     ID     = varargin{1};
@@ -561,31 +523,6 @@ switch lower(action),
         dcps(ID) = [];
       end
     end
-    
-% .........................................................................
-  case 'minjerk'
-    ID     = varargin{1};
-    
-    % generate the minimum jerk trajectory as target to learn from
-    t=0;
-    td=0;
-    tdd=0;
-    goal = 1;
-    
-    dcp('reset_state',ID);
-    dcp('set_goal',ID,goal,1);
-    tau = 0.5;
-    dt = 0.001;
-    T=zeros(2*tau/dt,3);
-
-    for i=0:2*tau/dt,
-      [t,td,tdd]=min_jerk_step(t,td,tdd,goal,tau-i*dt,dt);
-      T(i+1,:)   = [t td tdd];
-    end;
-
-    % batch fitting
-    i = round(2*tau/dt); % only fit the part of the trajectory with the signal
-    [Yp,Ypd,Ypdd]=dcp('batch_fit',ID,tau,dt,T(1:i,1),T(1:i,2),T(1:i,3));
     
 % .........................................................................
   otherwise

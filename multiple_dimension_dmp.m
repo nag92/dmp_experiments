@@ -1,4 +1,4 @@
-clc; clear; close all;
+clc; clear;
 global dcps;
 
 % generaler parameters
@@ -9,8 +9,8 @@ saveAnimation = 0;
 dt        = 0.001;      % time step of training trajectory
 start     = [0,0,0];    % DMP start-position [x,y,z]
 goal      = [0,0,0];    % DMP end-position   [z,y,z]
-tau       = 1.0;        % DMP time scaling constant
-n_rfs     = 256;        % # of basis functions to use/DMP
+tau       = 2.0;        % DMP time scaling constant
+n_rfs     = 100;        % # of basis functions to use/DMP
 
 % initialize a DMP for each of the X, Y, and Z dimensions
 Xid = 1; dcp('clear',Xid); dcp('init',Xid,n_rfs,'X-dim_dmp',1);
@@ -19,9 +19,9 @@ Zid = 3; dcp('clear',Zid); dcp('init',Zid,n_rfs,'Z-dim_dmp',1);
 
 % initialize some variables for plotting
 [xT, yT, zT] = makeCardioid(tau, dt); % training trajectories
-X = zeros(floor(2*tau/dt+1),3);       % dmp-computed x-trajectory
-Y = zeros(floor(2*tau/dt+1),3);       % dmp-computed y-trajectory
-Z = zeros(floor(2*tau/dt+1),3);       % dmp-computed z-trajectory
+X = zeros(floor(tau/dt+1),3);       % dmp-computed x-trajectory
+Y = zeros(floor(tau/dt+1),3);       % dmp-computed y-trajectory
+Z = zeros(floor(tau/dt+1),3);       % dmp-computed z-trajectory
 
 % compute DMP for each of the X, Y, and Z dimensions
 dcp('Batch_Fit',Xid,tau,dt,xT(:,1),xT(:,2),xT(:,3));
@@ -41,7 +41,7 @@ axis([-5 5 -5 5 -5 5]);
 history = [];
 
 tic
-for i=0:2*tau/dt
+for i=0:tau/dt
   % change goal if more than halfway
 %     if(i > tau/dt) %change goal
 %       goal = [1,1,1];
@@ -83,7 +83,7 @@ plot3(xT(:,1), yT(:,1), zT(:,1));
 title('training (pos) trajectory vs. generated (pos) trajectory');
 
 % compare individual DMP's
-time = (0:dt:tau*2)';
+time = (0:dt:tau)';
 dir_num = 1; % pos = 1, vel = 2, accl = 3
 figure(2); clf;
 
@@ -110,16 +110,16 @@ rotx  = @(th) [1 0 0; 0 cos(th) -sin(th); 0 sin(th) cos(th)];
 roty  = @(th) [cos(th) 0 sin(th); 0 1 0; -sin(th) 0 cos(th)];
 rotz  = @(th) [cos(th) -sin(th) 0; sin(th) cos(th) 0; 0 0 1];
 
-xT=zeros(floor(2*tau/dt+1),3);          % [pos; vel; accl]
-yT=zeros(floor(2*tau/dt+1),3);          % [pos; vel; accl]
-zT=zeros(floor(2*tau/dt+1),3);          % [pos; vel; accl]
+xT=zeros(floor(tau/dt+1),3);          % [pos; vel; accl]
+yT=zeros(floor(tau/dt+1),3);          % [pos; vel; accl]
+zT=zeros(floor(tau/dt+1),3);          % [pos; vel; accl]
 
 % generating rotated cardioid trajectory
-t = (0:dt/(2*tau):1)'*2*pi;               % parametric parameter for traj.
+t = (0:dt/(tau):1)'*2*pi;               % parametric parameter for traj.
 
 T = [2*(1-cos(t)).*cos(t), ...          % [xPos; yPos; zPos]
      2*(1-cos(t)).*sin(t), ...
-     zeros(floor(2*tau/dt+1),1)];
+     zeros(floor(tau/dt+1),1)];
 
 T = T*rotx(pi/4)*roty(pi/4)*rotz(pi/4);
 
