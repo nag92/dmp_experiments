@@ -1,4 +1,4 @@
-%clc; clear;
+clc; clear;
 global dcps;
 
 % generaler parameters
