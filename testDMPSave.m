@@ -4,6 +4,7 @@ clc; clear; close;
 name = 'test.xml';
 n_rfs = 6;
 dt  = 0.001;
+
 % generating y = t^3 trajectory
 t = 0:dt:1;
 y = t.^3;
@@ -18,21 +19,21 @@ tau = 1.0;
 [w, D, c] = train_dmp(name, n_rfs, T, dt);
 % dcp('reset_state',ID,start);
 % dcp('set_goal',ID,goal,1); %the "1" resets y0 and x
+
 myRunner = DMP_Runner(w, D, c);
-
 for i=0:tau/dt
-if(i == 50)
-   'hi' 
+  Y(i+1,:) = myRunner.step(tau, dt);
 end
-
-
-
-  [y, yd, ydd] = myRunner.step(tau, dt);
-  Y(i+1,:) = [y; yd; ydd];
-end
-% YOUR TEST HERE %
 
 % plot position vs. target
 time = (0:dt:tau)';
 plot((0:dt:tau)',[Y(:,1) T(:,1)]);
 aa=axis; axis([min(time) max(time) aa(3:4)]);
+% YOUR TEST HERE %
+
+% TODO's:
+% figure out how the set the start position
+% read/write to/from XML
+% add back in functional scaling if you want it
+% add back in 0th order canonical function if you want it
+% invert 1/tau if possible
