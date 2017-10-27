@@ -43,12 +43,12 @@ history = [];
 tic
 for i=0:tau/dt
   % change goal if more than halfway
-%     if(i > tau/dt) %change goal
-%       goal = [1,1,1];
-%       dcp('set_goal',Xid,goal(1),1);
-%       dcp('set_goal',Yid,goal(2),1);
-%       dcp('set_goal',Zid,goal(3),1);
-%     end
+     if(i > 0.5*tau/dt) %change goal
+       goal = [1,1,1];
+       dcp('set_goal',Xid,goal(1),0);
+       dcp('set_goal',Yid,goal(2),0);
+       dcp('set_goal',Zid,goal(3),0);
+     end
   
   % next task-space point computations
   X(i+1,:)   = dcp('run',Xid,tau,dt);
