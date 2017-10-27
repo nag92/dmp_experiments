@@ -1,4 +1,4 @@
-clc; clear;
+clc; clear; disp('hello');
 global dcps;
 
 % generaler parameters
