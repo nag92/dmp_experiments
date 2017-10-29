@@ -7,7 +7,7 @@ dt        = 0.001;      % time step of training trajectory
 start     = 0;          % DMP start-position
 goal      = 1;          % DMP end-position
 tau       = 1;          % DMP time scaling constant
-n_rfs     = 6;         % # of basis functions to use/DMP
+n_rfs     = 200;         % # of basis functions to use/DMP
 ID        = 1;          % matlab flag to use dmp library
 
 % initialize DMP
@@ -34,6 +34,9 @@ dcp('Batch_Fit',ID,tau,dt,T(:,1),T(:,2),T(:,3));
 dcp('reset_state',ID,start);
 dcp('set_goal',ID,goal,1); %the "1" resets y0 and x
 for i=0:tau/dt,
+  if i>0.5*(tau/dt)
+      dcp('set_goal',ID,3,1)
+  end
   [y,yd,ydd]=dcp('run',ID,tau,dt);
   Y(i+1,:)   = [y yd ydd];
   PSI(i+1,:) = dcps(ID).psi';

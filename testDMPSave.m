@@ -2,8 +2,12 @@ clc; clear; close;
 
 % DMP training parameters
 name = 'test.xml';
-n_rfs = 6;
+n_rfs = 256;
 dt  = 0.001;
+
+%Start and end parameters
+start = 0;
+goal = 5;
 
 % generating y = t^3 trajectory
 t = 0:dt:1;
@@ -16,13 +20,23 @@ T(3:end,3) = diff(T(:,1), 2)/(dt^2);
 tau = 1.0;
 
 % YOUR TEST HERE %
-[w, D, c] = train_dmp(name, n_rfs, T, dt);
+train_dmp(name, n_rfs, T, dt);
 % dcp('reset_state',ID,start);
 % dcp('set_goal',ID,goal,1); %the "1" resets y0 and x
+myRunner = DMP_Runner(name);
 
-myRunner = DMP_Runner(w, D, c);
+%Set start point
+myRunner.setStart(start);
+
+%Set goal point
+myRunner.setGoal(goal,1);
+
 for i=0:tau/dt
   Y(i+1,:) = myRunner.step(tau, dt);
+  %Dynamic change in goal at first quaarter
+  %if i>0.25*(tau/dt)
+  %    myRunner.setGoal(5,0);
+  %end
 end
 
 % plot position vs. target
@@ -32,8 +46,4 @@ aa=axis; axis([min(time) max(time) aa(3:4)]);
 % YOUR TEST HERE %
 
 % TODO's:
-% figure out how the set the start position
-% read/write to/from XML
-% add back in functional scaling if you want it
-% add back in 0th order canonical function if you want it
-% invert 1/tau if possible
+% Clean up codebase; write good demo code
