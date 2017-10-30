@@ -1,0 +1,6 @@
+This directory contains code corresponding to the original MATLAB implementation
+of DMP's, per http://www-clmc.usc.edu/Resources/Software.
+
+It considered Outdated for use in the CIBR lab.  It is left in here as a
+reference, in the event that the more efficient CIBR implementation may need
+to cross check its computations.

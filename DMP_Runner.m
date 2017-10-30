@@ -17,6 +17,7 @@ classdef DMP_Runner < handle
       xd = 0;
       zd = 0;
       
+      % variables needed for live-updating of goal
       dG;
       A;
       s;
@@ -26,16 +27,19 @@ classdef DMP_Runner < handle
    methods
        % initialize the DMP_Runner object
        % Inputs:
-       %    w: vector of weights
-       %    D: vector of 1/sigma^2
-       %    c: vector of canonical function values
-       function obj = DMP_Runner(fileName)
+       %    filename: full path to .xml file containing trained DMP
+       %    start   : desired starting coordinate of DMP
+       %    goal    : desired ending coordinate of DMP
+       function obj = DMP_Runner(fileName, start, goal)
           [obj.w, obj.D, obj.c, obj.dG, obj.A, obj.s, obj.y0] = readInXml(fileName);
+          obj.setStart(start);
+          obj.setGoal(goal,1);
        end
        
        % Changes the goal position of the DMP
        % Inputs:
-       %    G: goal position
+       %    G   : goal position
+       %    flag: 1 initial setting; 0 for mid-run update
        function setGoal(obj, G, flag)
           obj.G = G;
           if (flag == 1),
@@ -62,7 +66,7 @@ classdef DMP_Runner < handle
        %    dt : integration constant
        % Outputs:
        %    [y yd ydd]: current DMP trajectory
-       function [y yd ydd] = step(obj, tau, dt)
+       function [y, yd, ydd] = step(obj, tau, dt)
           tau = 1/tau; % ????????
           % the time constants for chosen for critical damping
           alpha_z = 25;
