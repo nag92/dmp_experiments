@@ -10,6 +10,7 @@ Created on Mon Oct 30 17:40:33 2017
 # dt         : timestep between each sequential trajectory point
 
 import numpy as np
+from lxml import etree
 
 def train_dmp(name, n_rfs, T, dt):
     name = name
@@ -80,9 +81,11 @@ def train_dmp(name, n_rfs, T, dt):
     A  = np.amax(T)-np.amin(T)
     s = 1 #for fitting a new primitive, the scale factor is always equal to one
     
+    #Forcing term
     Ft  = (Tdd-(np.multiply(alpha_z,(np.multiply(beta_z,(G-T))-Td))))
     Ft_res = np.reshape(Ft,(len(Ft),1))
-    #PSI1 = np.exp(np.multiply(-0.5,(np.multiply(X,np.ones((1,len(c)))-np.power(np.multiply(np.ones((len(T),1)),c_rearr),2)))))[0]
+    
+    
     PSI1 = np.dot(np.reshape(X,(len(X),1)),np.ones((1,len(c))))
     PSI2 = np.dot(np.ones((len(T),1)),np.reshape(c,(1,n_rfs)))
     PSID = np.dot(np.ones((len(T),1)),np.reshape(D,(1,len(D))))
@@ -101,6 +104,46 @@ def train_dmp(name, n_rfs, T, dt):
     #Final weights
     w    = np.divide(sxtd,(sx2+(1.e-10)));
 
-    return [w,c,D]
+    ############XML file creation ############################    
+    
+    w_st = ["%.6f" % number for number in w]
+    #w_sent = ",".join(w_str )
+    
+    D_st = ["%.6f" % number for number in D]
+    #D_sent = ",".join(D_str )
+    
+    c_st = ["%.6f" % number for number in c]
+    #c_sent = ",".join(c_str )
+        
+    root = etree.Element('DMPs')
+    weights = etree.Element('Weights')
+    inv_sq_var = etree.Element('inv_sq_var')
+    gauss_means = etree.Element('gauss_means')
+    dGx = etree.Element('dG')
+    dGx.text = dG.astype('|S10')
+    Ax = etree.Element('A')
+    Ax.text = A.astype('|S10')
+    sx = etree.Element('c')
+    sx.text = str(s)
+    y0x = etree.Element('y0')
+    y0x.text = y0.astype('|S10')
+
+    
+    for i in range(0,n_rfs):
+        etree.SubElement(weights, "w").text = w_st[i]
+        etree.SubElement(inv_sq_var, "D").text = D_st[i]
+        etree.SubElement(gauss_means, "c").text = c_st[i]
+    
+    root.append(weights)
+    root.append(inv_sq_var)
+    root.append(gauss_means)
+    root.append(dGx)
+    root.append(Ax)
+    root.append(sx)
+    root.append(y0x)
+    tree = etree.ElementTree(root)
+    tree.write(name, pretty_print=True, xml_declaration=True,   encoding="utf-8")
+    
+    return 
     
     

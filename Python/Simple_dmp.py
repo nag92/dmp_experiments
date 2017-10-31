@@ -6,12 +6,14 @@ Created on Mon Oct 30 16:48:52 2017
 """
 import numpy as np
 from train_dmp import train_dmp
+from DMP_runner import DMP_runner
+from DMP_test import runner
 
 #Name of the file
-name = 'test.xml'
+name = 'Simple_dmps.xml'
 
 #Set no. of basis functions
-n_rfs = 35
+n_rfs = 4
 
 #Set the time-step
 dt = 0.001
@@ -29,7 +31,5 @@ T.append(y2)
 T.append(y3)
 ####### TRAJ END ###############################
 
-#Obtain w, c & D (in that order) from below function
+#Obtain w, c & D (in that order) from below function, and generate XML file
 Important_values = train_dmp(name, n_rfs, T, dt)
-
-print Important_values[0],'\n\n\n',Important_values[1],'\n\n\n',Important_values[2]
