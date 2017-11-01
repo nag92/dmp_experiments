@@ -108,6 +108,7 @@ class DMP_runner():
                # dG based scaling cab work automatically
                self.s = np.divide((self.G - self.y0), float(self.dG))
 
+
 """
     Parses XML file containing trained DMP data.  Current format is:
         <root>

@@ -40,13 +40,13 @@ Important_values = train_dmp(name, n_rfs, T, dt)
 
 start = 0
 goal = 1
-DMPrun = DMP_runner(name,start,goal)
+my_runner = DMP_runner(name,start,goal)
 
 Y = []
 tau = 1
 for i in np.arange(0,int(tau/dt)+1):
-    DMPrun.step(tau,dt)
-    Y.append(DMPrun.y)
+    my_runner.step(tau,dt)
+    Y.append(my_runner.y)
 
 time = np.arange(0,tau+dt,dt)
 
@@ -55,3 +55,4 @@ plt.xlabel("Time(t)")
 plt.ylabel("Position(y)")
 plt.plot(time,T_rec[0])
 plt.plot(time,Y)
+plt._show()
