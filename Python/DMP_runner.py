@@ -53,8 +53,8 @@ class DMP_runner():
         amp = self.s
         In = self.v
 
-        f = np.divide(np.sum(np.dot(np.dot(In,self.w),psi)), np.multiply(np.sum(psi+1.e-10),amp))
-
+        f  = np.divide(np.sum(np.dot(np.dot(In,(self.w)),psi)), np.sum(psi+1.e-10)) * amp
+        
         self.vd = np.multiply(np.multiply(alpha_v,(np.multiply(beta_v,(0-self.x))-self.v)),tau)
         
         self.xd = np.multiply(self.v,tau)
