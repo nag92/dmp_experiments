@@ -1,4 +1,4 @@
-from xml.etree import ElementTree
+import xml.etree.ElementTree as ET
 import numpy as np
 import re
 
@@ -24,8 +24,8 @@ class DMP_runner():
         #self.goal = goal
         self.flag = 0
         
-        setStart(self,start)
-        setGoal(self,goal,1)
+        self.setStart(start)
+        self.setGoal(goal,1)
 
        # Generates one time-step of a DMP trajectory
        # Inputs:
@@ -74,76 +74,50 @@ class DMP_runner():
         #Return o/p trajectory
         y = self.y
         return y,yd,ydd
-        
-    
+
+    def setStart(self, start_val):
+       self.y = start_val
+
+       # Changes the goal position of the DMP
+       # Inputs:
+       #    G   : goal position
+       #    flag: 1 initial setting; 0 for mid-run update
+
+    def setGoal(self, goal_val, flag):
+       self.G = goal_val
+
+       if (flag == 1):
+           self.x = 1
+           self.y0 = self.y
+
+       if (self.A != 0):  # check whether dcp has been fit
+           if (np.divide(float(self.A), (np.abs(self.dG) + (1.e-10))) > 2.0):
+               # amplitude-based scaling needs to be set explicity
+               pass
+           else:
+               # dG based scaling cab work automatically
+               self.s = np.divide((self.G - self.y0), float(self.dG))
+
+
 #Reads in the XML file
         
 def readInXML(runner, filename):
     runner.w = []
     runner.D = []
     runner.c= []
-    runner.A = 0
-    runner.dG = 0
-    runner.s = 0
-    runner.y0 = 0
     
-    tree = ElementTree.parse(filename).getroot()	
-    for weights in tree.findall("Weights"):
-		     for wt in weights.findall("w"):
-			     runner.w.append(float(wt.text))
-        
-    for inv_sq in tree.findall("inv_sq_var"):
-		     for inv_sq in inv_sq.findall("D"):
-			     runner.D.append(float(inv_sq.text))
-        
-    for mean in tree.findall("gauss_means"):
-		     for m in mean.findall("c"):
-			     runner.c.append(float(m.text))
-    
-    for dG in tree.iter('dG'):
-        runner.dG = ElementTree.tostring(dG)
-        runner.dG = np.int(''.join(i for i in runner.dG if i.isdigit()))
-        
-    for A in tree.findall("A"):
-        runner.A = ElementTree.tostring(A)
-        runner.A = np.int(''.join(i for i in runner.A if i.isdigit()))
+    root = ET.parse(filename).getroot()
 
-    for s in tree.findall("s"):
-        runner.s = ElementTree.tostring(s)
-        runner.s = np.int(''.join(i for i in runner.s if i.isdigit()))
-        
-    for y0 in tree.findall("y0"):
-        runner.y0 = ElementTree.tostring(y0)
-        runner.y0 = np.int(''.join(i for i in runner.y0 if i.isdigit()))
-        
-    
-def setStart(self,start_val):
-    self.y = start_val
-    
-    
-    
-    
-       # Changes the goal position of the DMP
-       # Inputs:
-       #    G   : goal position
-       #    flag: 1 initial setting; 0 for mid-run update
-    
-def setGoal(self,goal_val,flag):
-    self.G = goal_val
-    
-    if (flag == 1):
-        self.x = 1
-        self.y0 = self.y
-        
-    if (self.A != 0): # check whether dcp has been fit
-        if (np.divide(float(self.A),(np.abs(self.dG)+(1.e-10))) > 2.0):
-            # amplitude-based scaling needs to be set explicity
-            pass
-        else:
-            #dG based scaling cab work automatically
-            self.s = np.divide((self.G-self.y0),float(self.dG))
+    for weight in root.findall("Weights")[0]:
+        runner.w.append(float(weight.text))
 
+    for inv_sq in root.findall("inv_sq_var")[0]:
+        runner.D.append(float(inv_sq.text))
 
-            
-        
-    
+    for mean in root.findall("gauss_means")[0]:
+        runner.c.append(float(mean.text))
+
+    runner.dG = float(root.findall("dG")[0].text)
+    runner.A = float(root.findall("A")[0].text)
+    runner.s = float(root.findall("s")[0].text)
+    runner.y0 = float(root.findall("y0")[0].text)
