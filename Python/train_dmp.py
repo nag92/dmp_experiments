@@ -114,19 +114,19 @@ def train_dmp(name, n_rfs, T, dt):
     
     c_st = ["%.6f" % number for number in c]
     #c_sent = ",".join(c_str )
-        
+ 
     root = etree.Element('DMPs')
     weights = etree.Element('Weights')
     inv_sq_var = etree.Element('inv_sq_var')
     gauss_means = etree.Element('gauss_means')
     dGx = etree.Element('dG')
-    dGx.text = dG.astype('|S10')
+    dGx.text = np.str(np.int(dG))
     Ax = etree.Element('A')
-    Ax.text = A.astype('|S10')
-    sx = etree.Element('c')
-    sx.text = str(s)
+    Ax.text = np.str(np.int(A))
+    sx = etree.Element('s')
+    sx.text = str(np.int(s))
     y0x = etree.Element('y0')
-    y0x.text = y0.astype('|S10')
+    y0x.text = np.str(np.int(y0))
 
     
     for i in range(0,n_rfs):
@@ -144,6 +144,6 @@ def train_dmp(name, n_rfs, T, dt):
     tree = etree.ElementTree(root)
     tree.write(name, pretty_print=True, xml_declaration=True,   encoding="utf-8")
     
-    return 
+
     
     
