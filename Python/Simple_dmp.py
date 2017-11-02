@@ -8,6 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from train_dmp import train_dmp
 from DMP_runner import DMP_runner
+#from simple_trajectories import y_cubed_trajectory
+#from simple_trajectories import y_lin_trajectory
+import simple_trajectories
+
 
 #from DMP_test import runner
 
@@ -20,20 +24,15 @@ n_rfs = 200
 #Set the time-step
 dt = 0.001
 
-##### TRAJECTORY GENERATOR FOR TRAINING ########
-t = list(i for i in np.arange(0,1+dt,dt))
-y = list(np.power(t,3))
-y2 = [0]
-y2 = np.append(y2,np.divide(np.diff(y,1),np.power(dt,1)))
-y3 = [0,0]
-y3 = np.append(y3,np.divide(np.diff(y,2),np.power(dt,2)))
-T = []
-T_rec = []
-T_rec.append(y)
-T.append(y)
-T.append(y2)
-T.append(y3)
-####### TRAJ END ###############################
+
+##### TRAJECTORY  FOR TRAINING ########
+''' Available trajectories: 
+    Linear = simple_trajectories.y_lin_trajectory(dt)
+    Exponential = simple_trajectories.y_exp_trajectory(dt)
+    Step = simple_trajectories.y_step_trajectory(dt)
+'''
+T = simple_trajectories.y_lin_trajectory(dt)
+
 
 #Obtain w, c & D (in that order) from below function, and generate XML file
 Important_values = train_dmp(name, n_rfs, T, dt)
@@ -47,10 +46,10 @@ tau = 1
 for i in np.arange(0,int(tau/dt)+1):
     
     '''Dynamic change in goal'''
-    new_goal = 2
-    new_flag = 1
-    if i > 0.6*int(tau/dt):
-        my_runner.setGoal(new_goal,new_flag)
+    #new_goal = 2
+    #new_flag = 1
+    #if i > 0.6*int(tau/dt):
+    #    my_runner.setGoal(new_goal,new_flag)
     '''Dynamic change in goal'''    
     
     my_runner.step(tau,dt)
@@ -61,6 +60,6 @@ time = np.arange(0,tau+dt,dt)
 plt.title("2-D DMP demonstration")
 plt.xlabel("Time(t)")
 plt.ylabel("Position(y)")
-plt.plot(time,T_rec[0])
+plt.plot(time,T[0])
 plt.plot(time,Y)
 plt._show()
