@@ -27,7 +27,7 @@ class DMP_runner():
         self.flag = 0
         
         self.setStart(start)
-        self.setGoal(goal,1)
+        self.setGoal(goal,self.flag)
 
     """
         Generates one time-step of a DMP trajectory

@@ -15,7 +15,7 @@ from DMP_runner import DMP_runner
 name = 'Simple_dmps.xml'
 
 #Set no. of basis functions
-n_rfs = 15
+n_rfs = 200
 
 #Set the time-step
 dt = 0.001
@@ -45,6 +45,14 @@ my_runner = DMP_runner(name,start,goal)
 Y = []
 tau = 1
 for i in np.arange(0,int(tau/dt)+1):
+    
+    '''Dynamic change in goal'''
+    new_goal = 2
+    new_flag = 1
+    if i > 0.6*int(tau/dt):
+        my_runner.setGoal(new_goal,new_flag)
+    '''Dynamic change in goal'''    
+    
     my_runner.step(tau,dt)
     Y.append(my_runner.y)
 
