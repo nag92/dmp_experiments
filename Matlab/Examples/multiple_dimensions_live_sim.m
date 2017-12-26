@@ -1,4 +1,4 @@
-clc; clear; close;
+clc; clear;
 %% Train DMP
 % DMP training parameters
 n_rfs = 256;        % how many basis functions to train with
@@ -28,6 +28,7 @@ arm_plot  = plot3([0],[0],[0], 'Marker', 'o', 'LineStyle','-');
 traj_plot = plot3([0],[0],[0], 'LineStyle','-');
 axis([-5 5 -5 5 -5 5]);
 history = [];
+
 for i=0:tau/dt
   % time step
   X(i+1,:) = xRunner.step(tau, dt);
