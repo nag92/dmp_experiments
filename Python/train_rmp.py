@@ -115,42 +115,51 @@ def train_rmp(name, n_bfs, T, dt):
         ddy_des = np.hstack((np.zeros((1)), ddy_des))
         return y_des, dy_des, ddy_des
 
-    def save(h,c,w):
+    def save(w,c,h,y0goal):
+        
+        w_st = ["%.6f" % number for number in w]
+        h_st = ["%.6f" % number for number in h]
+        c_st = ["%.6f" % number for number in c]
 
-        root = etree.Element('DMPs')
+        root = etree.Element('RMPs')
         weights = etree.Element('Weights')
         inv_sq_var = etree.Element('inv_sq_var')
         gauss_means = etree.Element('gauss_means')
-        dGx = etree.Element('dG')
-        dGx.text = np.str(np.int(dG))
-        Ax = etree.Element('A')
-        Ax.text = np.str(np.int(A))
-        sx = etree.Element('s')
-        sx.text = str(np.int(s))
-        y0x = etree.Element('y0')
-        y0x.text = np.str(np.int(y0))
+        y_start = etree.Element('y0')
+        the_goal = etree.Element('goal')
 
 
-    for i in range(0,n_rfs):
-        etree.SubElement(weights, "w").text = w_st[i]
-        etree.SubElement(inv_sq_var, "D").text = D_st[i]
-        etree.SubElement(gauss_means, "c").text = c_st[i]
+        the_goal.text = np.str(np.int(goal))
+        y_start.text = np.str(np.int(y0))
+      
+        for  _w, _c, _h in zip(w_st,c_st,h_st):
+            etree.SubElement(weights, "w").text = _w
+            etree.SubElement(inv_sq_var, "h").text = _h
+            etree.SubElement(gauss_means, "c").text = _c
+
+        root.append(weights)
+        root.append(inv_sq_var)
+        root.append(gauss_means)
+        root.append(the_goal)
+        root.append(y_start)
+        tree = etree.ElementTree(root)
+        tree.write(name, pretty_print=True, xml_declaration=True,   encoding="utf-8")
 
 
-    
-
-    # set variance of Gaussian basis functions
-    # trial and error to find this spacing
     
     y,yd,ydd = gen_path()   
     goal = gen_goal(T)
+    y0 = 0
     force = force(y,yd,ydd,goal)
     c = gen_centers()
     h = np.ones(n_bfs) * n_bfs  # 1.75
     psi = gen_psi(h,c)
     w = gen_weights(psi,force)
+    save(w,c,h,y0,goal)
 
 
+
+ 
 
 path1 = np.sin(np.arange(0, 2*np.pi, .01)*5)
 T = np.array([path1])
