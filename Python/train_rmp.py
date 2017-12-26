@@ -90,8 +90,8 @@ def train_rmp(name, n_bfs, T, dt):
         
         for i, (y_i, yd_i, ydd_i) in  enumerate( zip( y,yd,ydd  ) ): 
 
-            f_target[ i ] = ( ydd_i - alpha_z * (beta_z *  goal - y_i) - yd_i)
-        print f_target
+            f_target[ i ] = ( ydd_i - alpha_z * (beta_z *  (goal - y_i) - yd_i))
+        return f_target
 
 
     def gen_path():
@@ -120,12 +120,11 @@ def train_rmp(name, n_bfs, T, dt):
     # trial and error to find this spacing
     h = np.ones(n_bfs) * n_bfs  # 1.75
     centers = gen_centers()
-    y,yd,ydd = gen_path()
-       
+    y,yd,ydd = gen_path()   
     goal = gen_goal(T)
     
-    #force(y,yd,ydd,goal)
-
+    force = force(y,yd,ydd,goal)
+    w = gen_weights(force)
 
 
 
