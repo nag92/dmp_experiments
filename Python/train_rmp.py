@@ -31,37 +31,39 @@ def train_rmp(name, n_bfs, T, dt):
     alpha_v = alpha_z
     beta_v  = beta_z
     timesteps = int( 2*math.pi / dt)
+    tau = 1
 
 
-    def gen_psi(c, x):
+    def gen_psi(h,c):
         """Generates the activity of the basis functions for a given
         canonical system state or path.
 
         x float, array: the canonical system state or path
         """
 
-        if isinstance(x, np.ndarray):
-            x = x[:, None]
-        return np.exp(h * (np.cos(x - c) - 1))
+        x_track = np.zeros(timesteps)
+        x = 1
+        for t in xrange(timesteps):
+            x_track[t] = x
+            x += 1*tau*dt
+        x_track = x_track[:, None]
+        
+        return np.exp(h * (np.cos(x_track - c) - 1))
 
-    def gen_weights(self, f_target):
-            """Generate a set of weights over the basis functions such
-            that the target forcing term trajectory is matched.
+    def gen_weights(psi,f_target):
+        """Generate a set of weights over the basis functions such
+        that the target forcing term trajectory is matched.
 
-            f_target np.array: the desired forcing term trajectory
-            """
+        f_target np.array: the desired forcing term trajectory
+        """
+        w = np.zeros(n_bfs)
+        for b in range(n_bfs):
+            w[b] = (np.dot(psi[:, b], f_target[:]) / (np.sum(psi[:, b]) + 1e-10))
 
-            # calculate x and psi
-            x_track = self.cs.rollout()
-            psi_track = gen_psi(x_track)
-
-            # efficiently calculate BF weights using weighted linear regression
-
-            for b in xrange(n_bfs):
-                w[b] = (np.dot(psi_track[:, b], f_target[:, d]) / (np.sum(psi_track[:, b]) + 1e-10))
+        return w    
 
     def gen_goal(y_des):
-        """Generate the goal for path imitation.
+        """Generate the goal for pattah imitation.
         For rhythmic DMPs the goal is the average of the
         desired trajectory.
 
@@ -79,7 +81,7 @@ def train_rmp(name, n_bfs, T, dt):
 
         c = np.linspace(0, 2*np.pi, n_bfs+1)
         c = c[0:-1]
-        c = c
+        return c
 
     def force(y,yd,ydd, goal):
         """
@@ -89,7 +91,6 @@ def train_rmp(name, n_bfs, T, dt):
         # find the force required to move along this trajectory
         
         for i, (y_i, yd_i, ydd_i) in  enumerate( zip( y,yd,ydd  ) ): 
-
             f_target[ i ] = ( ydd_i - alpha_z * (beta_z *  (goal - y_i) - yd_i))
         return f_target
 
@@ -114,17 +115,40 @@ def train_rmp(name, n_bfs, T, dt):
         ddy_des = np.hstack((np.zeros((1)), ddy_des))
         return y_des, dy_des, ddy_des
 
+    def save(h,c,w):
+
+        root = etree.Element('DMPs')
+        weights = etree.Element('Weights')
+        inv_sq_var = etree.Element('inv_sq_var')
+        gauss_means = etree.Element('gauss_means')
+        dGx = etree.Element('dG')
+        dGx.text = np.str(np.int(dG))
+        Ax = etree.Element('A')
+        Ax.text = np.str(np.int(A))
+        sx = etree.Element('s')
+        sx.text = str(np.int(s))
+        y0x = etree.Element('y0')
+        y0x.text = np.str(np.int(y0))
+
+
+    for i in range(0,n_rfs):
+        etree.SubElement(weights, "w").text = w_st[i]
+        etree.SubElement(inv_sq_var, "D").text = D_st[i]
+        etree.SubElement(gauss_means, "c").text = c_st[i]
+
+
     
 
     # set variance of Gaussian basis functions
     # trial and error to find this spacing
-    h = np.ones(n_bfs) * n_bfs  # 1.75
-    centers = gen_centers()
+    
     y,yd,ydd = gen_path()   
     goal = gen_goal(T)
-    
     force = force(y,yd,ydd,goal)
-    w = gen_weights(force)
+    c = gen_centers()
+    h = np.ones(n_bfs) * n_bfs  # 1.75
+    psi = gen_psi(h,c)
+    w = gen_weights(psi,force)
 
 
 
