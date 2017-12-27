@@ -1,8 +1,7 @@
 import xml.etree.ElementTree as ET
 import numpy as np
 from math import pi
-import matplotlib.pyplot as plt
-import re
+
 
 
 class RMP_runner(object):
@@ -86,8 +85,8 @@ class RMP_runner(object):
         dy_track = []
         ddy_track = []
 
-        for t in xrange(runner.timesteps):
-            y, dy, ddy = runner.step(tau)
+        for t in xrange(self.timesteps):
+            y, dy, ddy = self.step(tau)
             y_track.append(y[0])
             dy_track.append(dy[0])
             ddy_track.append(ddy[0])
