@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import numpy as np
 from math import pi
+import matplotlib.pyplot as plt
 import re
 
 
@@ -17,24 +18,20 @@ class RMP_runner(object):
         self.h = None
         self.y0 = None
         self.goal = None
-
+        self.y = np.zeros(1)
+        self.dy = np.zeros(1)
+        self.ddy = np.zeros(1)
+        self.x = 1
         self.timesteps = int(2 * pi / self.dt)
         self.readInXML(file)
 
-        print self.w
+
 
     def gen_psi(self):
 
-        x_track = np.zeros(self.timesteps)
-        x = 1
-        for t in xrange(self.timesteps):
-            x_track[t] = x
-            x += 1 * self.tau * self.dt
-        x_track = x_track[:, None]
+        return np.exp(self.h * (np.cos(self.x - self.c) - 1))
 
-        return np.exp(self.h * (np.cos(x_track - self.c) - 1))
-
-    def gen_front_term(self, x):
+    def gen_front_term(self):
         """Generates the front term on the forcing term.
         For rhythmic DMPs it's non-diminishing, so this
         function is just a placeholder to return 1.
@@ -43,11 +40,11 @@ class RMP_runner(object):
         dmp_num int: the index of the current dmp
         """
 
-        if isinstance(x, np.ndarray):
-            return np.ones(x.shape)
+        if isinstance(self.x, np.ndarray):
+            return np.ones(self.x.shape)
         return 1
 
-    def step(self, tau=1.0, error=0.0, external_force=None):
+    def step(self, tau=1.0):
         """Run the DMP system for a single timestep.
 
         tau float: scales the timestep
@@ -55,34 +52,30 @@ class RMP_runner(object):
         error float: optional system feedback
         """
 
-        error_coupling = 1.0 / (1.0 + error)
+
         alpha_z = 25
-        beta_z = np.divide(float(alpha_z), 4)
+        beta_z = 0.25*alpha_z
         # run canonical system
 
-        x_track = np.zeros(self.timesteps)
-        x = 1
-        for t in xrange(self.timesteps):
-            x_track[t] = x
-            x += 1 * tau * dt
-        x_track = x_track[:, None]
+
+        self.x += 1 * self.tau * self.dt
 
         # generate basis function activation
-        psi = self.gen_psi(x)
+        psi = self.gen_psi()
 
 
-        front_term = self.gen_front_term(x)
+
+        front_term = self.gen_front_term()
         # generate the forcing term
         f = (front_term * (np.dot(psi, self.w)) / np.sum(psi))
-
+        print f
         # DMP acceleration
-        self.ddy[d] = (self.ay[d] *
-                       (self.by[d] * (self.goal[d] - self.y[d]) -
-                        self.dy[d] / tau) + f) * tau
-        if external_force is not None:
-            self.ddy[d] += external_force[d]
-        self.dy[d] += self.ddy[d] * tau * self.dt * error_coupling
-        self.y[d] += self.dy[d] * self.dt * error_coupling
+        self.ddy = (alpha_z *
+                       (beta_z * (self.goal - self.y) -
+                        self.dy / tau) + f) * tau
+
+        self.dy += self.ddy * tau * self.dt
+        self.y  += self.dy * self.dt
 
         return self.y, self.dy, self.ddy
 
@@ -106,9 +99,20 @@ class RMP_runner(object):
         self.w = np.asarray(w)
         self.c = np.asarray(c)
         self.h = np.asarray(h)
+
         self.goal = float(root.findall("goal")[0].text)
-        self.y0 = float(root.findall("y0")[0].text)
+        self.y = float(root.findall("y0")[0].text)
 
 
-runner = RMP_runner("name.xml")
+runner = RMP_runner("names.xml")
+y_track = np.zeros(runner.timesteps)
+dy_track = np.zeros(runner.timesteps)
+ddy_track = np.zeros(runner.timesteps)
+
+for t in xrange(runner.timesteps):
+    y_track[t],dy_track[t],ddy_track[t] =     runner.step()
+print "y_track", + y_track
+plt.plot(y_track)
+plt.show()
+# print "hello"
 

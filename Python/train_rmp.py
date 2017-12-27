@@ -5,7 +5,7 @@
 @author: nathaniel
 adpatived from studywolf: 
 """
-# name       : filename for trained dmp to be stored into
+# names.xml       : filename for trained dmp to be stored into
 # n_rfs      : number of basis functions to train dmp with
 # T          : training trajectory formatted: [Y; dY; ddY];
 # dt         : timestep between each sequential trajectory point
@@ -14,6 +14,7 @@ import numpy as np
 import math
 from lxml import etree
 import scipy.interpolate
+
 
 
 def train_rmp(name, n_bfs, T, dt):
@@ -115,7 +116,7 @@ def train_rmp(name, n_bfs, T, dt):
         ddy_des = np.hstack((np.zeros((1)), ddy_des))
         return y_des, dy_des, ddy_des
 
-    def save(w,c,h,y0goal):
+    def save(w,c,h,y0,goal):
         
         w_st = ["%.6f" % number for number in w]
         h_st = ["%.6f" % number for number in h]
@@ -165,4 +166,4 @@ path1 = np.sin(np.arange(0, 2*np.pi, .01)*5)
 T = np.array([path1])
 dt = .01
 
-train_rmp("name", 100,T, dt)
+train_rmp("names.xml", 5,T, dt)
