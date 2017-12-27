@@ -7,6 +7,7 @@ import re
 
 class RMP_runner(object):
     """docstring for RMP_runner
+        Runs the RMP from a training file of motion primatives
     """
 
     def __init__(self, file, tau=1, dt=0.01):
@@ -27,17 +28,21 @@ class RMP_runner(object):
 
 
 
+    @property
     def gen_psi(self):
+        """
 
+        :rtype: numpy array
+        """
         return np.exp(self.h * (np.cos(self.x - self.c) - 1))
 
+    @property
     def gen_front_term(self):
-        """Generates the front term on the forcing term.
+        """
+        Generates the front term on the forcing term.
         For rhythmic DMPs it's non-diminishing, so this
         function is just a placeholder to return 1.
-
-        x float: the current value of the canonical system
-        dmp_num int: the index of the current dmp
+        :return: 1
         """
 
         if isinstance(self.x, np.ndarray):
@@ -52,35 +57,51 @@ class RMP_runner(object):
         error float: optional system feedback
         """
 
-
         alpha_z = 25
         beta_z = 0.25*alpha_z
+
         # run canonical system
-
-
         self.x += 1 * self.tau * self.dt
 
         # generate basis function activation
-        psi = self.gen_psi()
+        psi = self.gen_psi
 
-
-
-        front_term = self.gen_front_term()
+        front_term = self.gen_front_term
         # generate the forcing term
         f = (front_term * (np.dot(psi, self.w)) / np.sum(psi))
-        print f
-        # DMP acceleration
-        self.ddy = (alpha_z *
-                       (beta_z * (self.goal - self.y) -
-                        self.dy / tau) + f) * tau
 
+        # DMP acceleration
+        self.ddy = (alpha_z * (beta_z * (self.goal - self.y) - self.dy / tau) + f) * tau
         self.dy += self.ddy * tau * self.dt
         self.y  += self.dy * self.dt
 
         return self.y, self.dy, self.ddy
 
+    def run(self,tau=1):
+        """
+
+        :return:
+        """
+        y_track = []
+        dy_track = []
+        ddy_track = []
+
+        for t in xrange(runner.timesteps):
+            y, dy, ddy = runner.step(tau)
+            y_track.append(y[0])
+            dy_track.append(dy[0])
+            ddy_track.append(ddy[0])
+
+        return y_track, dy_track, ddy_track
+
+
 
     def readInXML(self, filename):
+        """
+
+        :param filename: name of file
+        :return:None
+        """
 
         root = ET.parse(filename).getroot()
         w = []
@@ -104,15 +125,5 @@ class RMP_runner(object):
         self.y = float(root.findall("y0")[0].text)
 
 
-runner = RMP_runner("names.xml")
-y_track = np.zeros(runner.timesteps)
-dy_track = np.zeros(runner.timesteps)
-ddy_track = np.zeros(runner.timesteps)
 
-for t in xrange(runner.timesteps):
-    y_track[t],dy_track[t],ddy_track[t] =     runner.step()
-print "y_track", + y_track
-plt.plot(y_track)
-plt.show()
-# print "hello"
 
