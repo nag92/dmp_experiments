@@ -11,7 +11,7 @@ train_dmp(name, n_rfs, T, dt);
 
 %% Use trained DMP
 % DMP running parameters
-tau = 1.0;          % go relatively faster/slower than trained DMP
+tau = 2.0;          % go relatively faster/slower than trained DMP
 start = 0;          % set desired start-point of trajctory
 goal = 1;           % set desired end-point of trajectory
 
