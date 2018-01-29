@@ -11,6 +11,64 @@ Created on Mon Oct 30 17:40:33 2017
 
 import numpy as np
 from lxml import etree
+import csv
+
+
+
+def batch_train_dmp(names,n_rfs,dt,dir):
+    """
+
+    :param names: list file names
+    :param n_rfs: number of DMPs
+    :param dt: time step
+    :param dertives: are the dertives in the file
+    :param dir: directory to save too
+    :return:
+    """
+    traj = {}
+    print len(names)
+    for file in names:
+        print file
+        with open(file) as csvfile:
+            reader = csv.reader(csvfile)
+            x_temp = []
+            y_temp = []
+            z_temp = []
+            q = []
+            T = []
+            for row in reader:
+                x_temp.append(float(row[0]))
+                y_temp.append(float(row[1]))
+                z_temp.append(float(row[2]))
+
+            taskspace = [ x_temp, y_temp,z_temp ]
+
+            pose = {}
+            space_list = ["x","y","z"]
+            for  space, axis in zip(space_list,taskspace):
+                T = []
+                qd = [0]
+                qd = np.append(qd, np.divide(np.diff(axis, 1), np.power(dt, 1)))
+                qdd = [0, 0]
+                qdd = np.append(qdd, np.divide(np.diff(axis, 2), np.power(dt, 2)))
+
+                T.append(axis)
+                T.append(qd)
+                T.append(qdd)
+                pose[space] = T
+
+        traj[file] = pose
+
+
+
+    for top_key, top_value in traj.iteritems():
+        for bottom_key,bottom_value in top_value.iteritems():
+
+            temp = top_key.rsplit('/', 1)[-1]
+            temp = top_key.rsplit('.', 1)[0]
+            temp = temp + "_" + bottom_key + ".xml"
+            train_dmp(temp ,n_rfs,bottom_value,dt)
+
 
 def train_dmp(name, n_rfs, T, dt):
     name = name
