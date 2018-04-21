@@ -39,47 +39,44 @@ class Mod_DMP_runner():
                 yd : current 1st derivative DMP trajectory
                 ydd: current 2nd derivative DMP trajectory
     """
-    def step(self,tau_old,dt,externail_force=None):
+    def step(self,tau_old,dt,error=0.0,externail_force=None):
 
         tau = np.divide(float(1),tau_old)
-        alpha_z = 25
+        alpha_z = 200
         beta_z  = np.divide(alpha_z,float(4))
         alpha_g = np.divide(alpha_z,float(2))
         alpha_v = alpha_z
         beta_v  = beta_z
-
         psi = np.exp(np.multiply(-0.5,np.multiply(np.power((np.array(self.c)-self.x),2),np.array(self.D))))
-
+        err = 1.0/(1.0+error)
         amp = self.s
         In = self.v
 
         f  = np.divide(np.sum(np.dot(np.dot(In,(self.w)),psi)), np.sum(psi+1.e-10)) * amp
-
         self.vd = np.multiply(np.multiply(alpha_v,(np.multiply(beta_v,(0-self.x))-self.v)),tau)
-
         self.xd = np.multiply(self.v,tau)
 
         # PROBLEM HERE
         # obj.zd = (alpha_z*(beta_z*A-obj.z)+f)*tau;
         #self.zd = np.multiply((np.multiply(alpha_z,(np.multiply(beta_z,self.g-self.y)-self.z)) + np.multiply(1,((f-self.g+self.y0))*self.s)),tau)
         self.zd = np.multiply((np.multiply(alpha_z,(np.multiply(beta_z,self.g-self.y)-self.z))+f),tau)
-        print self.x
-        if externail_force is not None:
-            self.zd += externail_force
-            #pass
 
-        yd = np.multiply(self.z,tau)
-        ydd= np.multiply(self.zd,tau)
+        if externail_force is not None:
+            self.zd =  self.zd + externail_force
+
+
+        yd  = np.multiply(self.z,tau)
+        ydd = np.multiply(self.zd,tau)
 
         self.gd = np.multiply(alpha_g,(self.G-self.g))
 
-        self.x = np.multiply(self.xd,dt)+self.x
-        self.v = np.multiply(self.vd,dt)+self.v
+        self.x = np.multiply(self.xd,dt*err)+self.x
+        self.v = np.multiply(self.vd,dt*err)+self.v
 
-        self.z = np.multiply(self.zd,dt)+self.z
-        self.y = np.multiply(yd,dt)+self.y
+        self.z = np.multiply(self.zd,dt*err)+self.z
+        self.y = np.multiply(yd,dt*err)+self.y
 
-        self.g = np.multiply(self.gd,dt)+self.g
+        self.g = np.multiply(self.gd,dt*err)+self.g
 
         # Return o/p trajectory
         y = self.y
